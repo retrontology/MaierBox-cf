@@ -1,22 +1,140 @@
+Parameters:
+  DBAdminUsername:
+    Type: String
+    Default: admin
 Resources:
   ECSService:
     Type: AWS::ECS::Service
     Properties: {}
   ECSTaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    Properties: {}
+    Properties:
+      ContainerDefinitions: 
+        - DisableNetworking: false
+          DockerLabels: 
+            Key: Value
+          DockerSecurityOptions: 
+            - String
+          EntryPoint: 
+            - String
+          Environment: 
+            - KeyValuePair
+          EnvironmentFiles: 
+            - EnvironmentFile
+          Essential: Boolean
+          ExtraHosts: 
+            - HostEntry
+          FirelensConfiguration: 
+            FirelensConfiguration
+          HealthCheck: 
+            HealthCheck
+          Hostname: String
+          Image: String
+          Interactive: Boolean
+          Links: 
+            - String
+          LinuxParameters: 
+            LinuxParameters
+          LogConfiguration: 
+            LogConfiguration
+          Memory: Integer
+          MemoryReservation: Integer
+          MountPoints: 
+            - MountPoint
+          Name: String
+          PortMappings: 
+            - PortMapping
+          Privileged: Boolean
+          PseudoTerminal: Boolean
+          ReadonlyRootFilesystem: Boolean
+          RepositoryCredentials: 
+            RepositoryCredentials
+          ResourceRequirements: 
+            - ResourceRequirement
+          Secrets: 
+            - Secret
+          StartTimeout: Integer
+          StopTimeout: Integer
+          SystemControls: 
+            - SystemControl
+          Ulimits: 
+            - Ulimit
+          User: String
+          VolumesFrom: 
+            - VolumeFrom
+          WorkingDirectory: String
+      Cpu: String
+      EphemeralStorage: 
+        EphemeralStorage
+      ExecutionRoleArn: String
+      Family: String
+      InferenceAccelerators: 
+        - InferenceAccelerator
+      IpcMode: String
+      Memory: String
+      NetworkMode: String
+      PidMode: String
+      PlacementConstraints: 
+        - TaskDefinitionPlacementConstraint
+      ProxyConfiguration: 
+        ProxyConfiguration
+      RequiresCompatibilities: 
+        - String
+      RuntimePlatform: 
+        RuntimePlatform
+      Tags: 
+        - Tag
+      TaskRoleArn: String
+      Volumes: 
+        - Volume
   MaierBoxRepo:
     Type: AWS::ECR::Repository
-    Properties: {}
+    Properties:
+      EmptyOnDelete: true
+      ImageTagMutability: MUTABLE
+      RepositoryName: maierbox
   NGINXRepo:
     Type: AWS::ECR::Repository
-    Properties: {}
+    Properties:
+      EmptyOnDelete: true
+      ImageTagMutability: MUTABLE
+      RepositoryName: nginx
   MaierBoxSecret:
     Type: AWS::SecretsManager::Secret
     Properties: {}
+  DBAdmin:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Credentials for the Admin User of the MaierBox DB
+      GenerateSecretString:
+        ExcludePunctuation: true
+        GenerateStringKey: password
+        PasswordLength: 32
+        RequireEachIncludedType: true
+        SecretStringTemplate: !Sub '{"username": "${DBAdminUsername}"}'
+      Name: MaierBoxDBAdmin
   DBCluster:
     Type: AWS::RDS::DBCluster
-    Properties: {}
+    Properties:
+      DBClusterIdentifier: MaierBoxDB
+      DeletionProtection: true
+      EnableHttpEndpoint: false
+      Engine: aurora-mysql
+      EngineMode: provisioned
+      EngineVersion: 8.0.mysql_aurora.3.07.1
+      MasterUsername:
+        Fn::Sub: "{{resolve:secretsmanager:${DBAdmin}::username}}"
+      MasterUserPassword:
+        Fn::Sub: "{{resolve:secretsmanager:${DBAdmin}::password}}"
+      ServerlessV2ScalingConfiguration: 
+          MaxCapacity: 1
+          MinCapacity: 0.5
+  DBInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      Engine: aurora-mysql
+      DBInstanceClass: db.serverless
+      DBClusterIdentifier: !Ref DBCluster
   ElasticFileSystem:
     Type: AWS::EFS::FileSystem
     Properties: {}
