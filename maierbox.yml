@@ -1,0 +1,43 @@
+Resources:
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties: {}
+  ECSTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties: {}
+  MaierBoxRepo:
+    Type: AWS::ECR::Repository
+    Properties: {}
+  NGINXRepo:
+    Type: AWS::ECR::Repository
+    Properties: {}
+  MaierBoxSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties: {}
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties: {}
+  ElasticFileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties: {}
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: {}
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: <String>
+      DefaultActions:
+        - Type: <String>
+  HTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: <String>
+      DefaultActions:
+        - Type: <String>
+  ListenerCertificate:
+    Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
+    Properties:
+      Certificates:
+        - {}
+      ListenerArn: <String>
