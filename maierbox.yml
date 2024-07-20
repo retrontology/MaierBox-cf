@@ -16,6 +16,16 @@ Parameters:
     Type: String
     Description: ARN of the SSL Certificate to use for the HTTPS Listener within the Load Balancer
 Resources:
+  MaierBoxContainerLog:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupClass: STANDARD
+      LogGroupName: '/ecs/maierbox'
+  NGINXContainerLog:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupClass: STANDARD
+      LogGroupName: '/ecs/nginx'
   ECSExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -109,6 +119,12 @@ Resources:
           Image:
             Fn::Sub: '${MaierBoxRepo.RepositoryUri}/maierbox:latest'
           Interactive: false
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref MaierBoxContainerLog
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
           MountPoints: 
             - ContainerPath: /opt/maierbox/static
               ReadOnly: false
@@ -120,12 +136,8 @@ Resources:
           Privileged: false
           ReadonlyRootFilesystem: true
           Secrets: 
-            - Name: MYSQL_USER
-              ValueFrom: 
-                Fn::Sub: "${DBAdmin}:SecretString:username"
-            - Name: MYSQL_PASS
-              ValueFrom:
-                Fn::Sub: "${DBAdmin}:SecretString:password"
+            - Name: MYSQL_CREDENTIALS
+              ValueFrom: !Ref DBAdmin
             - Name: MAIERBOX_SECRET
               ValueFrom: !Ref MaierBoxSecret
         - DependsOn:
@@ -139,6 +151,12 @@ Resources:
           Image:
             Fn::Sub: '${NGINXRepo.RepositoryUri}/nginx:latest'
           Interactive: false
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref NGINXContainerLog
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
           MountPoints: 
             - ContainerPath: /mnt/static
               ReadOnly: false
