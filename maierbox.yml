@@ -11,82 +11,89 @@ Resources:
     Properties:
       ContainerDefinitions: 
         - DisableNetworking: false
-          DockerLabels: 
-            Key: Value
-          DockerSecurityOptions: 
-            - String
-          EntryPoint: 
-            - String
           Environment: 
-            - KeyValuePair
-          EnvironmentFiles: 
-            - EnvironmentFile
-          Essential: Boolean
-          ExtraHosts: 
-            - HostEntry
-          FirelensConfiguration: 
-            FirelensConfiguration
+            - Name: MYSQL_HOST
+              Value:
+                Fn::GetAtt: DBCluster.Endpoint.Address
+            - Name: MYSQL_PORT
+              Value:
+                Fn::GetAtt: DBCluster.Endpoint.Port
+          Essential: true
           HealthCheck: 
-            HealthCheck
-          Hostname: String
-          Image: String
-          Interactive: Boolean
-          Links: 
-            - String
-          LinuxParameters: 
-            LinuxParameters
-          LogConfiguration: 
-            LogConfiguration
-          Memory: Integer
-          MemoryReservation: Integer
+              Command: 
+                - "CMD-SHELL, curl -f http://localhost:8000 || exit 1"
+          Hostname: maierbox
+          Image:
+            Fn::Sub: '${MaierBoxRepo.RepositoryUri}/maierbox:latest'
+          Interactive: false
           MountPoints: 
-            - MountPoint
-          Name: String
-          PortMappings: 
-            - PortMapping
-          Privileged: Boolean
-          PseudoTerminal: Boolean
-          ReadonlyRootFilesystem: Boolean
-          RepositoryCredentials: 
-            RepositoryCredentials
-          ResourceRequirements: 
-            - ResourceRequirement
+            - ContainerPath: /opt/maierbox/static
+              ReadOnly: false
+              SourceVolume: static
+            - ContainerPath: /opt/maierbox/media
+              ReadOnly: false
+              SourceVolume: media
+          Name: maierbox
+          Privileged: false
+          ReadonlyRootFilesystem: true
           Secrets: 
-            - Secret
-          StartTimeout: Integer
-          StopTimeout: Integer
-          SystemControls: 
-            - SystemControl
-          Ulimits: 
-            - Ulimit
-          User: String
-          VolumesFrom: 
-            - VolumeFrom
-          WorkingDirectory: String
-      Cpu: String
-      EphemeralStorage: 
-        EphemeralStorage
-      ExecutionRoleArn: String
-      Family: String
-      InferenceAccelerators: 
-        - InferenceAccelerator
-      IpcMode: String
-      Memory: String
-      NetworkMode: String
-      PidMode: String
-      PlacementConstraints: 
-        - TaskDefinitionPlacementConstraint
-      ProxyConfiguration: 
-        ProxyConfiguration
+            - Name: MYSQL_USER
+              ValueFrom: 
+                Fn::Sub: "${DBAdmin}:SecretString:username"
+            - Name: MYSQL_PASS
+              ValueFrom:
+                Fn::Sub: "${DBAdmin}:SecretString:password"
+            - Name: MAIERBOX_SECRET
+              ValueFrom: !Ref MaierBoxSecret
+        - DependsOn:
+            - Condition: HEALTHY
+              ContainerName: maierbox
+          DisableNetworking: false
+          Essential: true
+          HealthCheck: 
+              Command: 
+                - "CMD-SHELL, curl -f http://localhost/ || exit 1"
+          Hostname: nginx
+          Image:
+            Fn::Sub: '${NGINXRepo.RepositoryUri}/nginx:latest'
+          Interactive: false
+          MountPoints: 
+            - ContainerPath: /mnt/static
+              ReadOnly: false
+              SourceVolume: static
+            - ContainerPath: /mnt/media
+              ReadOnly: false
+              SourceVolume: media
+          Name: nginx
+          PortMappings:
+            - AppProtocol: http
+              ContainerPort: 80
+              HostPort: 80
+              Protocol: tcp
+          Privileged: false
+          ReadonlyRootFilesystem: true
+      Cpu: 512
+      Memory: 2048
+      NetworkMode: awsvpc
+      PidMode: task
       RequiresCompatibilities: 
-        - String
+        - FARGATE
       RuntimePlatform: 
-        RuntimePlatform
-      Tags: 
-        - Tag
-      TaskRoleArn: String
+        CpuArchitecture: ARM64
+        OperatingSystemFamily: LINUX
       Volumes: 
-        - Volume
+        - ConfiguredAtLaunch: false
+          EFSVolumeConfiguration:
+              FilesystemId: !Ref ElasticFileSystem
+              RootDirectory: '/static/'
+              TransitEncryption: DISABLED
+          Name: static
+        - ConfiguredAtLaunch: false
+          EFSVolumeConfiguration:
+              FilesystemId: !Ref ElasticFileSystem
+              RootDirectory: '/media/'
+              TransitEncryption: DISABLED
+          Name: media
   MaierBoxRepo:
     Type: AWS::ECR::Repository
     Properties:
@@ -101,7 +108,12 @@ Resources:
       RepositoryName: nginx
   MaierBoxSecret:
     Type: AWS::SecretsManager::Secret
-    Properties: {}
+    Properties:
+      Description: SECRET_KEY for MaierBox/Django
+      GenerateSecretString:
+        PasswordLength: 64
+        RequireEachIncludedType: true
+      Name: MaierBoxSecret
   DBAdmin:
     Type: AWS::SecretsManager::Secret
     Properties:
