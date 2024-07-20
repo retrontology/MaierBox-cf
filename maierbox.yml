@@ -137,7 +137,9 @@ Resources:
       ToPort: 80
   ECSService:
     Type: AWS::ECS::Service
-    DependsOn: HTTPSListener
+    DependsOn:
+      - HTTPSListener
+      - DBInstance
     Properties:
       Cluster: !Ref ECSCluster
       DeploymentController: 
