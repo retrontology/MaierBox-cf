@@ -2,10 +2,51 @@ Parameters:
   DBAdminUsername:
     Type: String
     Default: admin
+  VPCID:
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Type: CommaDelimitedList
 Resources:
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the MaierBox containers running on ECS
+      GroupName: maierbox
+      VpcId: !Ref VPCID
   ECSService:
     Type: AWS::ECS::Service
-    Properties: {}
+    Properties:
+      Cluster: !Ref ECSCluster
+      DeploymentController: 
+        Type: ECS
+      DesiredCount: 1
+      EnableExecuteCommand: false
+      LaunchType: FARGATE
+      LoadBalancers: 
+        - ContainerName: nginx
+          ContainerPort: 80
+          TargetGroupArn: !Ref ECSTargetGroup
+      NetworkConfiguration: 
+        AwsvpcConfiguration: 
+            AssignPublicIp: DISABLED
+            SecurityGroups: 
+              - !Ref ECSSecurityGroup
+            Subnets: !Ref Subnets
+      PlatformVersion: LATEST
+      SchedulingStrategy: REPLICA
+      ServiceConnectConfiguration: 
+        Enabled: false
+      ServiceName: maierbox
+      TaskDefinition: !Ref ECSTaskDefinition
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      CapacityProviders: 
+        - FARGATE
+      ClusterName: maierbox
+      ClusterSettings: 
+        - Name: containerInsights
+          Value: disabled
   ECSTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -178,3 +219,29 @@ Resources:
       Certificates:
         - {}
       ListenerArn: <String>
+  ECSTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: Boolean
+      HealthCheckIntervalSeconds: Integer
+      HealthCheckPath: String
+      HealthCheckPort: String
+      HealthCheckProtocol: String
+      HealthCheckTimeoutSeconds: Integer
+      HealthyThresholdCount: Integer
+      IpAddressType: String
+      Matcher: 
+        Matcher
+      Name: String
+      Port: Integer
+      Protocol: String
+      ProtocolVersion: String
+      Tags: 
+        - Tag
+      TargetGroupAttributes: 
+        - TargetGroupAttribute
+      Targets: 
+        - TargetDescription
+      TargetType: String
+      UnhealthyThresholdCount: Integer
+      VpcId: String
