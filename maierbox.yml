@@ -103,7 +103,6 @@ Resources:
           HealthCheck: 
               Command: 
                 - "CMD-SHELL, curl -f http://localhost:8000 || exit 1"
-          Hostname: maierbox
           Image:
             Fn::Sub: '${MaierBoxRepo.RepositoryUri}/maierbox:latest'
           Interactive: false
@@ -134,7 +133,6 @@ Resources:
           HealthCheck: 
               Command: 
                 - "CMD-SHELL, curl -f http://localhost/ || exit 1"
-          Hostname: nginx
           Image:
             Fn::Sub: '${NGINXRepo.RepositoryUri}/nginx:latest'
           Interactive: false
@@ -236,7 +234,7 @@ Resources:
     Properties:
       DBClusterIdentifier: MaierBoxDB
       DBSubnetGroupName: !Ref DBSubnetGroup
-      DeletionProtection: true
+      DeletionProtection: false
       EnableHttpEndpoint: false
       Engine: aurora-mysql
       EngineMode: provisioned
