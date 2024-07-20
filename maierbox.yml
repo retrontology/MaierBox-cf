@@ -48,6 +48,19 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
             Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: MaierBoxSecrets
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                Resource: !Ref MaierBoxSecret
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref DBAdmin
   ECSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
