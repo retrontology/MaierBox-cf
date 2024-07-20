@@ -199,10 +199,17 @@ Resources:
         RequireEachIncludedType: true
         SecretStringTemplate: !Sub '{"username": "${DBAdminUsername}"}'
       Name: MaierBoxDBAdmin
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for the MaierBox DB
+      DBSubnetGroupName: maierbox-db
+      SubnetIds: !Ref PrivateSubnets
   DBCluster:
     Type: AWS::RDS::DBCluster
     Properties:
       DBClusterIdentifier: MaierBoxDB
+      DBSubnetGroupName: !Ref DBSubnetGroup
       DeletionProtection: true
       EnableHttpEndpoint: false
       Engine: aurora-mysql
@@ -240,7 +247,7 @@ Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      IpAddressType: dualstack
+      IpAddressType: ipv4
       Name: maierbox-lb
       Scheme: internet-facing
       SecurityGroups: 
