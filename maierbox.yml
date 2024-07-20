@@ -1,11 +1,20 @@
 Parameters:
   DBAdminUsername:
     Type: String
+    Description: Username for the admin DB user
     Default: admin
   VPCID:
     Type: AWS::EC2::VPC::Id
-  Subnets:
-    Type: CommaDelimitedList
+    Description: ID of the VPC in which you want to place this maierbox instance
+  PrivateSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of Subnet IDs for the private subnets
+  PublicSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of Subnet IDs for the public subnets
+  SSLCertificate:
+    Type: String
+    Description: ARN of the SSL Certificate to use for the HTTPS Listener within the Load Balancer
 Resources:
   ECSExecutionRole:
     Type: AWS::IAM::Role
@@ -53,7 +62,7 @@ Resources:
             AssignPublicIp: DISABLED
             SecurityGroups: 
               - !Ref ECSSecurityGroup
-            Subnets: !Ref Subnets
+            Subnets: !Ref PrivateSubnets
       PlatformVersion: LATEST
       SchedulingStrategy: REPLICA
       ServiceConnectConfiguration: 
@@ -222,27 +231,48 @@ Resources:
         ReplicationOverwriteProtection: ENABLED
       PerformanceMode: generalPurpose
       ThroughputMode: bursting
+  LBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the MaierBox loadbalancer
+      GroupName: maierbox-lb
+      VpcId: !Ref VPCID
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties: {}
+    Properties:
+      IpAddressType: dualstack
+      Name: maierbox-lb
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !Ref LBSecurityGroup
+      Subnets: !Ref PublicSubnets
+      Type: application
   HTTPListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      LoadBalancerArn: <String>
+      LoadBalancerArn: !Ref LoadBalancer
       DefaultActions:
-        - Type: <String>
+        - Type: redirect
+          RedirectConfig:
+            Protocol: "HTTPS"
+            Port: 443
+            Host: "#{host}"
+            Path: "/#{path}"
+            Query: "#{query}"
+            StatusCode: "HTTP_301"
+      Port: 80
+      Protocol: "HTTP"
   HTTPSListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      LoadBalancerArn: <String>
-      DefaultActions:
-        - Type: <String>
-  ListenerCertificate:
-    Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
-    Properties:
       Certificates:
-        - {}
-      ListenerArn: <String>
+        - CertificateArn: !Ref SSLCertificate
+      LoadBalancerArn: !Ref LoadBalancer
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ECSTargetGroup
+      Port: 443
+      Protocol: "HTTPS"
   ECSTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
