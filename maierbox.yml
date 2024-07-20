@@ -341,6 +341,22 @@ Resources:
         ReplicationOverwriteProtection: ENABLED
       PerformanceMode: generalPurpose
       ThroughputMode: bursting
+  EFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the MaierBox media EFS container 
+      GroupName: maierbox-efs
+      VpcId: !Ref VPCID
+  EFSMountPoint:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref ElasticFileSystem
+      SecurityGroups: 
+        - !Ref EFSSecurityGroup
+      SubnetId: 
+        Fn::Select:
+          - 0
+          - !Ref PrivateSubnets
   LBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
