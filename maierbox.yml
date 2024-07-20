@@ -7,6 +7,28 @@ Parameters:
   Subnets:
     Type: CommaDelimitedList
 Resources:
+  ECSExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: maierbox-execution
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+  ECSTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: maierbox-task
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
   ECSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -114,7 +136,8 @@ Resources:
           Privileged: false
           ReadonlyRootFilesystem: true
       Cpu: 512
-      Memory: 2048
+      ExecutionRoleArn: !Ref ECSExecutionRole
+      Memory: 2GB
       NetworkMode: awsvpc
       PidMode: task
       RequiresCompatibilities: 
@@ -122,6 +145,7 @@ Resources:
       RuntimePlatform: 
         CpuArchitecture: ARM64
         OperatingSystemFamily: LINUX
+      TaskRoleArn: !Ref ECSTaskRole
       Volumes: 
         - ConfiguredAtLaunch: false
           EFSVolumeConfiguration:
@@ -222,26 +246,13 @@ Resources:
   ECSTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckEnabled: Boolean
-      HealthCheckIntervalSeconds: Integer
-      HealthCheckPath: String
-      HealthCheckPort: String
-      HealthCheckProtocol: String
-      HealthCheckTimeoutSeconds: Integer
-      HealthyThresholdCount: Integer
-      IpAddressType: String
-      Matcher: 
-        Matcher
-      Name: String
-      Port: Integer
-      Protocol: String
-      ProtocolVersion: String
-      Tags: 
-        - Tag
-      TargetGroupAttributes: 
-        - TargetGroupAttribute
-      Targets: 
-        - TargetDescription
-      TargetType: String
-      UnhealthyThresholdCount: Integer
-      VpcId: String
+      HealthCheckEnabled: true
+      HealthCheckPath: /
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      Name: maierbox
+      Port: 80
+      Protocol: HTTP
+      ProtocolVersion: HTTP1
+      TargetType: ip
+      VpcId: !Ref VPCID
