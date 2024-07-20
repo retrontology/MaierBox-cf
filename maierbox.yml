@@ -149,7 +149,14 @@ Resources:
       DBClusterIdentifier: !Ref DBCluster
   ElasticFileSystem:
     Type: AWS::EFS::FileSystem
-    Properties: {}
+    Properties:
+      BackupPolicy: 
+        Status: ENABLED
+      Encrypted: false
+      FileSystemProtection: 
+        ReplicationOverwriteProtection: ENABLED
+      PerformanceMode: generalPurpose
+      ThroughputMode: bursting
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: {}
