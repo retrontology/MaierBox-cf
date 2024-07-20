@@ -50,7 +50,7 @@ Resources:
       Description: Allows MaierBox Load Balancer to access the containers
       FromPort: 80
       GroupId: !Ref ECSSecurityGroup
-      IpProtocol: ipv4
+      IpProtocol: tcp
       SourceSecurityGroupId: !Ref ECSSecurityGroup
       ToPort: 80
   ECSService:
@@ -227,7 +227,7 @@ Resources:
       FromPort:
         Fn::GetAtt: DBCluster.Endpoint.Port
       GroupId: !Ref DBSecurityGroup
-      IpProtocol: ipv4
+      IpProtocol: tcp
       SourceSecurityGroupId: !Ref ECSSecurityGroup
       ToPort:
         Fn::GetAtt: DBCluster.Endpoint.Port
