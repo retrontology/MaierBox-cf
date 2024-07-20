@@ -67,6 +67,13 @@ Resources:
                   - ecr:GetDownloadUrlForLayer
                 Resource:
                   Fn::GetAtt: MaierBoxRepo.Arn
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Resource:
+                  Fn::GetAtt: ElasticFileSystem.Arn
   ECSTaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -106,6 +113,13 @@ Resources:
                   - ecr:GetDownloadUrlForLayer
                 Resource:
                   Fn::GetAtt: MaierBoxRepo.Arn
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:ClientRootAccess
+                Resource:
+                  Fn::GetAtt: ElasticFileSystem.Arn
   ECSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
