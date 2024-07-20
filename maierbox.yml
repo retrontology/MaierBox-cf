@@ -119,7 +119,7 @@ Resources:
       FromPort: 80
       GroupId: !Ref ECSSecurityGroup
       IpProtocol: tcp
-      SourceSecurityGroupId: !Ref ECSSecurityGroup
+      SourceSecurityGroupId: !Ref LBSecurityGroup
       ToPort: 80
   ECSService:
     Type: AWS::ECS::Service
@@ -347,7 +347,16 @@ Resources:
       GroupDescription: Security group for the MaierBox media EFS container 
       GroupName: maierbox-efs
       VpcId: !Ref VPCID
-  EFSMountPoint:
+  EFSSGIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allows MaierBox containers to access the media EFS
+      FromPort: 2049
+      GroupId: !Ref EFSSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref ECSSecurityGroup
+      ToPort: 2049
+  EFSMountTarget:
     Type: AWS::EFS::MountTarget
     Properties:
       FileSystemId: !Ref ElasticFileSystem
