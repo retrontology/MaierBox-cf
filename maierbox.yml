@@ -186,8 +186,8 @@ Resources:
                 Fn::GetAtt: DBCluster.Endpoint.Port
           Essential: true
           HealthCheck: 
-              Command: 
-                - "CMD-SHELL, curl -f http://localhost:8000 || exit 1"
+            Command: 
+              - "CMD-SHELL, curl -f http://localhost:8000 || exit 1"
           Image:
             Fn::Sub: '${MaierBoxRepo.RepositoryUri}:latest'
           Interactive: false
@@ -206,7 +206,7 @@ Resources:
               SourceVolume: media
           Name: maierbox
           Privileged: false
-          ReadonlyRootFilesystem: true
+          ReadonlyRootFilesystem: false
           Secrets: 
             - Name: MYSQL_CREDENTIALS
               ValueFrom: !Ref DBAdmin
@@ -218,8 +218,8 @@ Resources:
           DisableNetworking: false
           Essential: true
           HealthCheck: 
-              Command: 
-                - "CMD-SHELL, curl -f http://localhost/ || exit 1"
+            Command: 
+              - "CMD-SHELL, curl -f http://localhost/ || exit 1"
           Image:
             Fn::Sub: '${NGINXRepo.RepositoryUri}:latest'
           Interactive: false
@@ -370,7 +370,7 @@ Resources:
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref ECSSecurityGroup
       ToPort: 2049
-  EFSMountTarget:
+  EFSMountTarget0:
     Type: AWS::EFS::MountTarget
     Properties:
       FileSystemId: !Ref ElasticFileSystem
@@ -379,6 +379,16 @@ Resources:
       SubnetId: 
         Fn::Select:
           - 0
+          - !Ref PrivateSubnets
+  EFSMountTarget1:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref ElasticFileSystem
+      SecurityGroups: 
+        - !Ref EFSSecurityGroup
+      SubnetId: 
+        Fn::Select:
+          - 1
           - !Ref PrivateSubnets
   LBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
