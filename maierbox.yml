@@ -325,6 +325,7 @@ Resources:
   DBCluster:
     Type: AWS::RDS::DBCluster
     Properties:
+      DatabaseName: maierbox
       DBClusterIdentifier: MaierBoxDB
       DBSubnetGroupName: !Ref DBSubnetGroup
       DeletionProtection: false
