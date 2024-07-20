@@ -94,6 +94,8 @@ Resources:
       ContainerDefinitions: 
         - DisableNetworking: false
           Environment: 
+            - Name: MAIERBOX_PROD
+              Value: 1
             - Name: MYSQL_HOST
               Value:
                 Fn::GetAtt: DBCluster.Endpoint.Address
@@ -152,6 +154,9 @@ Resources:
               Protocol: tcp
           Privileged: false
           ReadonlyRootFilesystem: true
+          VolumesFrom:
+            - ReadOnly: true
+              SourceContainer: maierbox
       Cpu: 512
       ExecutionRoleArn: !Ref ECSExecutionRole
       Memory: 2GB
@@ -164,16 +169,11 @@ Resources:
         OperatingSystemFamily: LINUX
       TaskRoleArn: !Ref ECSTaskRole
       Volumes: 
+        - Name: static
         - ConfiguredAtLaunch: false
           EFSVolumeConfiguration:
               FilesystemId: !Ref ElasticFileSystem
-              RootDirectory: '/static/'
-              TransitEncryption: DISABLED
-          Name: static
-        - ConfiguredAtLaunch: false
-          EFSVolumeConfiguration:
-              FilesystemId: !Ref ElasticFileSystem
-              RootDirectory: '/media/'
+              RootDirectory: '/'
               TransitEncryption: DISABLED
           Name: media
   MaierBoxRepo:
