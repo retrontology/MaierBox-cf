@@ -38,6 +38,35 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+      Policies:
+        - PolicyName: MaierBoxSecrets
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                Resource: !Ref MaierBoxSecret
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                Resource: !Ref DBAdmin
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                Resource:
+                  Fn::GetAtt: NGINXRepo.Arn
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                Resource:
+                  Fn::GetAtt: MaierBoxRepo.Arn
   ECSTaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -59,8 +88,24 @@ Resources:
                   - secretsmanager:DescribeSecret
                 Resource: !Ref MaierBoxSecret
               - Effect: Allow
-                Action: secretsmanager:GetSecretValue
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
                 Resource: !Ref DBAdmin
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                Resource:
+                  Fn::GetAtt: NGINXRepo.Arn
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                Resource:
+                  Fn::GetAtt: MaierBoxRepo.Arn
   ECSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -130,7 +175,7 @@ Resources:
               Command: 
                 - "CMD-SHELL, curl -f http://localhost:8000 || exit 1"
           Image:
-            Fn::Sub: '${MaierBoxRepo.RepositoryUri}/maierbox:latest'
+            Fn::Sub: '${MaierBoxRepo.RepositoryUri}:latest'
           Interactive: false
           LogConfiguration:
             LogDriver: awslogs
@@ -162,7 +207,7 @@ Resources:
               Command: 
                 - "CMD-SHELL, curl -f http://localhost/ || exit 1"
           Image:
-            Fn::Sub: '${NGINXRepo.RepositoryUri}/nginx:latest'
+            Fn::Sub: '${NGINXRepo.RepositoryUri}:latest'
           Interactive: false
           LogConfiguration:
             LogDriver: awslogs
