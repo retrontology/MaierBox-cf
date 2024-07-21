@@ -188,8 +188,9 @@ Resources:
                 Fn::GetAtt: DBCluster.Endpoint.Port
           Essential: true
           HealthCheck: 
-            Command: 
-              - "CMD-SHELL, curl -f http://localhost:8000 || exit 1"
+            Command:
+              - CMD-SHELL
+              - 'curl --unix-socket /opt/maierbox/socket/gunicorn.sock http://localhost/ || exit 1'
           Image:
             Fn::Sub: '${MaierBoxRepo.RepositoryUri}:latest'
           Interactive: false
@@ -200,6 +201,9 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: ecs
           MountPoints: 
+            - ContainerPath: /opt/maierbox/socket
+              ReadOnly: false
+              SourceVolume: socket
             - ContainerPath: /opt/maierbox/static
               ReadOnly: false
               SourceVolume: static
@@ -221,7 +225,8 @@ Resources:
           Essential: true
           HealthCheck: 
             Command: 
-              - "CMD-SHELL, curl -f http://localhost/ || exit 1"
+              - CMD-SHELL
+              - 'curl -f http://localhost/ || exit 1'
           Image:
             Fn::Sub: '${NGINXRepo.RepositoryUri}:latest'
           Interactive: false
@@ -232,6 +237,9 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: ecs
           MountPoints: 
+            - ContainerPath: /mnt/socket
+              ReadOnly: false
+              SourceVolume: socket
             - ContainerPath: /mnt/static
               ReadOnly: false
               SourceVolume: static
@@ -245,9 +253,9 @@ Resources:
               HostPort: 80
               Protocol: tcp
           Privileged: false
-          ReadonlyRootFilesystem: true
+          ReadonlyRootFilesystem: false
           VolumesFrom:
-            - ReadOnly: true
+            - ReadOnly: false
               SourceContainer: maierbox
       Cpu: 512
       ExecutionRoleArn: !Ref ECSExecutionRole
@@ -261,6 +269,7 @@ Resources:
         OperatingSystemFamily: LINUX
       TaskRoleArn: !Ref ECSTaskRole
       Volumes: 
+        - Name: socket
         - Name: static
         - ConfiguredAtLaunch: false
           EFSVolumeConfiguration:
