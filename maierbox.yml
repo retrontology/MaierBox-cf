@@ -3,7 +3,7 @@ Parameters:
     Type: String
     Description: Username for the admin DB user
     Default: admin
-  VPCID:
+  VpcId:
     Type: AWS::EC2::VPC::Id
     Description: ID of the VPC in which you want to place this maierbox instance
   PrivateSubnets:
@@ -125,7 +125,7 @@ Resources:
     Properties:
       GroupDescription: Security group for the MaierBox containers running on ECS
       GroupName: maierbox
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
   ECSSGIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -353,7 +353,7 @@ Resources:
     Properties:
       GroupDescription: Security group for the MaierBox DB
       GroupName: maierbox-db
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
   DBSGIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -406,7 +406,7 @@ Resources:
     Properties:
       GroupDescription: Security group for the MaierBox media EFS container 
       GroupName: maierbox-efs
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
   EFSSGIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -452,7 +452,7 @@ Resources:
           FromPort: 443
           IpProtocol: tcp
           ToPort: 443
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -501,4 +501,4 @@ Resources:
       Protocol: HTTP
       ProtocolVersion: HTTP1
       TargetType: ip
-      VpcId: !Ref VPCID
+      VpcId: !Ref VpcId
