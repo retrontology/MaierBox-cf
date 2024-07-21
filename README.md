@@ -5,7 +5,7 @@ A collection of CloudFormation scripts designed for deploying [MaierBox](https:/
 
 ## maierbox.yml
 ### Description
-A CloudFormation template for deploying [MaierBox](https://github.com/retrontology/MaierBox) containers to an autoscaling ECS Service. An Application LoadBalancer is used to distribute traffic and and Elastic FileSystem is mounted to the containers for flexible media storage.
+A CloudFormation template for deploying [MaierBox](https://github.com/retrontology/MaierBox) containers to an autoscaling ECS Service. An Application LoadBalancer is used to distribute traffic, an Aurora Serverless V2 cluster is used for the Database, and an Elastic FileSystem is mounted to the containers for flexible media storage.
 
 ![MaierBox Diagram](./maierbox.png)
 
