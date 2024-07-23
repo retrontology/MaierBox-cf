@@ -518,10 +518,10 @@ Resources:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Condition:
-                StringEquals:
-                    "token.actions.githubusercontent.com:sub": "repo: retrontology/MaierBox:ref:refs/heads/main"
-                    "token.actions.githubusercontent.com:aud": sts.amazonaws.com
+            Condition:                
+              StringEquals:
+                "token.actions.githubusercontent.com:sub": "repo:retrontology/MaierBox:environment:production"
+                "token.actions.githubusercontent.com:aud": sts.amazonaws.com
             Principal:
               Federated: !Ref GithubActionsProvider
             Action:
@@ -532,6 +532,11 @@ Resources:
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
+              - Sid: MaierBoxECRToken
+                Effect: Allow
+                Action:
+                  - "ecr:GetAuthorizationToken"
+                Resource: '*'
               - Sid: MaierBoxECRPolicy
                 Effect: Allow
                 Action:
