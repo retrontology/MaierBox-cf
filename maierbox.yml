@@ -555,6 +555,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - ecs:RegisterTaskDefinition
+                  - ecs:DescribeTaskDefinition
                 Resource: '*'
               - Sid: PassRolesInTaskDefinition
                 Effect: Allow
