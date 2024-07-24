@@ -511,7 +511,7 @@ Resources:
         - 6938fd4d98bab03faadb97b34396831e3780aea1
         - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
       Url: https://token.actions.githubusercontent.com
-  GithubActionsRole:
+  MaierBoxUpdateRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -528,7 +528,7 @@ Resources:
               - 'sts:AssumeRoleWithWebIdentity'
       Description: Allows for updating container images via Github Actions
       Policies: 
-        - PolicyName: root
+        - PolicyName: MaierBoxUpdate
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -570,4 +570,36 @@ Resources:
                   - ecs:UpdateService
                   - ecs:DescribeServices
                 Resource: !Ref ECSService
-      RoleName: MaierBoxGithubActions
+      RoleName: MaierBoxUpdateRole
+  MaierBoxCFUpdateRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Condition:                
+              StringEquals:
+                "token.actions.githubusercontent.com:sub": "repo:retrontology/MaierBox-cf:environment:production"
+                "token.actions.githubusercontent.com:aud": sts.amazonaws.com
+            Principal:
+              Federated: !Ref GithubActionsProvider
+            Action:
+              - 'sts:AssumeRoleWithWebIdentity'
+      Description: Allows for updating CloudFormation stack via Github Actions
+      Policies: 
+        - PolicyName: MaierBoxCFUpdate
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: MaierBoxCFUpdate
+                Effect: Allow
+                Action:
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:DescribeChangeSet"
+                  - "cloudformation:DeleteChangeSet"
+                  - "cloudformation:ExecuteChangeSet"
+                Resource: '*'
+      RoleName: MaierBoxCFUpdateRole
